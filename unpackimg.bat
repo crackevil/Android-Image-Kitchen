@@ -6,8 +6,8 @@ set "aik=%~dp0"
 set "bin=%~dp0\android_win_tools"
 set "rel=..\android_win_tools"
 set "cur=%cd%"
-%~d0
-cd "%~p0"
+
+cd /d "%cur%"
 if "%~1" == "--help" echo usage: unpackimg.bat ^<file^> & goto end
 if "[%~1]" == "[]" (
   for /f "delims=" %%a in ('dir /b /o *.elf *.img *.sin 2^>nul') do (
@@ -53,10 +53,10 @@ md ramdisk
 if errorlevel == 1 call "%aik%\cleanup.bat" >nul & goto error
 
 cd split_img
-"%bin%"\file -m %rel%\androidbootimg.magic "%file%" | "%bin%"\cut -d: -f2- | "%bin%"\cut -d: -f2 | "%bin%"\cut -d" " -f3 | "%bin%"\cut -d, -f1 > "%~nx1-imgtype"
+"%bin%"\file -m %bin%\androidbootimg.magic "%file%" | "%bin%"\cut -d: -f2- | "%bin%"\cut -d: -f2 | "%bin%"\cut -d" " -f3 | "%bin%"\cut -d, -f1 > "%~nx1-imgtype"
 for /f "delims=" %%a in ('type "%~nx1-imgtype"') do @set "imgtest=%%a"
 if "%imgtest%" == "signing" (
-  "%bin%"\file -m %rel%\androidbootimg.magic "%file%" | "%bin%"\cut -d: -f2- | "%bin%"\cut -d: -f2 | "%bin%"\cut -d" " -f2 > "%~nx1-sigtype"
+  "%bin%"\file -m %bin%\androidbootimg.magic "%file%" | "%bin%"\cut -d: -f2- | "%bin%"\cut -d: -f2 | "%bin%"\cut -d" " -f2 > "%~nx1-sigtype"
   for /f "delims=" %%a in ('type "%~nx1-sigtype"') do @set "sigtype=%%a" & echo Signature with "%%a" type detected, removing . . .
   echo.
 )
@@ -81,15 +81,15 @@ if "%sigtype%" == "SIN" (
   del "%~nx1-sigtype"
 )
 
-"%bin%"\file -m %rel%\androidbootimg.magic "%file%" | "%bin%"\cut -d: -f2- | "%bin%"\cut -d: -f2 | "%bin%"\cut -d" " -f3 | "%bin%"\cut -d, -f1 > "%~nx1-imgtype"
+"%bin%"\file -m %bin%\androidbootimg.magic "%file%" | "%bin%"\cut -d: -f2- | "%bin%"\cut -d: -f2 | "%bin%"\cut -d" " -f3 | "%bin%"\cut -d, -f1 > "%~nx1-imgtype"
 for /f "delims=" %%a in ('type "%~nx1-imgtype"') do @set "imgtest=%%a"
 if "%imgtest%" == "bootimg" (
   set "imgtest="
-  "%bin%"\file -m %rel%\androidbootimg.magic "%file%" | "%bin%"\cut -d: -f2- | "%bin%"\cut -d: -f2 | "%bin%"\cut -d" " -f4 > "%~nx1-imgtype"
+  "%bin%"\file -m %bin%\androidbootimg.magic "%file%" | "%bin%"\cut -d: -f2- | "%bin%"\cut -d: -f2 | "%bin%"\cut -d" " -f4 > "%~nx1-imgtype"
   for /f "delims=" %%a in ('type "%~nx1-imgtype"') do (
     if "%%a" == "PXA" set "imgtest=-%%a"
   )
-  "%bin%"\file -m %rel%\androidbootimg.magic "%file%" | "%bin%"\cut -d: -f2- | "%bin%"\cut -d: -f2 | "%bin%"\cut -d" " -f2 > "%~nx1-imgtype"
+  "%bin%"\file -m %bin%\androidbootimg.magic "%file%" | "%bin%"\cut -d: -f2- | "%bin%"\cut -d: -f2 | "%bin%"\cut -d" " -f2 > "%~nx1-imgtype"
   for /f "delims=" %%a in ('type "%~nx1-imgtype"') do @set "imgtype=%%a"
 ) else (
   call "%aik%\cleanup.bat" >nul
@@ -108,10 +108,10 @@ if "%imgtype%" == "KRNL" set "supported=1"
 if "%imgtype%" == "U-Boot" set "supported=1"
 if not defined supported call "%aik%\cleanup.bat" >nul & echo Unsupported format. & goto error
 
-"%bin%"\file -m %rel%\androidbootimg.magic "%file%" | "%bin%"\cut -d: -f2- | "%bin%"\cut -d: -f2 | "%bin%"\cut -d" " -f4 > "%~nx1-lokitype"
+"%bin%"\file -m %bin%\androidbootimg.magic "%file%" | "%bin%"\cut -d: -f2- | "%bin%"\cut -d: -f2 | "%bin%"\cut -d" " -f4 > "%~nx1-lokitype"
 for /f "delims=" %%a in ('type "%~nx1-lokitype"') do @set "lokitest=%%a"
 if "%lokitest%" == "LOKI" (
-  "%bin%"\file -m %rel%\androidbootimg.magic "%file%" | "%bin%"\cut -d: -f2- | "%bin%"\cut -d: -f2 | "%bin%"\cut -d( -f2 | "%bin%"\cut -d^) -f1 > "%~nx1-lokitype"
+  "%bin%"\file -m %bin%\androidbootimg.magic "%file%" | "%bin%"\cut -d: -f2- | "%bin%"\cut -d: -f2 | "%bin%"\cut -d( -f2 | "%bin%"\cut -d^) -f1 > "%~nx1-lokitype"
   for /f "delims=" %%a in ('type "%~nx1-lokitype"') do @echo Loki patch with "%%a" type detected, reverting . . .
   echo.
   echo Warning: A dump of your device's aboot.img is required to re-Loki!
@@ -122,11 +122,11 @@ if "%lokitest%" == "LOKI" (
   del "%~nx1-lokitype"
 )
 
-"%bin%"\tail -n50 "%file%" 2>nul | "%bin%"\file -m %rel%\androidbootimg.magic - | "%bin%"\cut -d: -f2 | "%bin%"\cut -d" " -f2 > "%~nx1-tailtype"
+"%bin%"\tail -n50 "%file%" 2>nul | "%bin%"\file -m %bin%\androidbootimg.magic - | "%bin%"\cut -d: -f2 | "%bin%"\cut -d" " -f2 > "%~nx1-tailtype"
 for /f "delims=" %%a in ('type "%~nx1-tailtype"') do @set "tailtype=%%a"
 if not "%tailtype%" == "AVB" if not "%tailtype%" == "Bump" if not "%tailtype%" == "SEAndroid" del "%~nx1-tailtype"
 if "%tailtype%" == "AVB" (
-  "%bin%"\tail -n50 "%file%" 2>nul | "%bin%"\file -m %rel%\androidbootimg.magic - | "%bin%"\cut -d: -f2 | "%bin%"\cut -d" " -f6 > "%~nx1-avbtype"
+  "%bin%"\tail -n50 "%file%" 2>nul | "%bin%"\file -m %bin%\androidbootimg.magic - | "%bin%"\cut -d: -f2 | "%bin%"\cut -d" " -f6 > "%~nx1-avbtype"
   echo Signature with "%tailtype%" type detected. & echo.
   move /y "%~nx1-tailtype" "%~nx1-sigtype" >nul
 )
@@ -168,7 +168,7 @@ if "%imgtype%" == "AOSP" (
   )
 )
 
-"%bin%"\file -m %rel%\androidbootimg.magic *-zImage | "%bin%"\cut -d: -f2 | "%bin%"\cut -d" " -f2 > "%~nx1-mtktest"
+"%bin%"\file -m %bin%\androidbootimg.magic *-zImage | "%bin%"\cut -d: -f2 | "%bin%"\cut -d" " -f2 > "%~nx1-mtktest"
 for /f "delims=" %%a in ('type "%~nx1-mtktest"') do @set "mtktest=%%a"
 if "%mtktest%" == "MTK" (
   set "mtk=1"
@@ -177,9 +177,9 @@ if "%mtktest%" == "MTK" (
   move /y tempzimg "%~nx1-zImage" >nul
 )
 for /f "delims=" %%a in ('dir /b *-ramdisk*.gz') do @set "ramdiskname=%%a"
-"%bin%"\file -m %rel%\androidbootimg.magic "%ramdiskname%" | "%bin%"\cut -d: -f2 | "%bin%"\cut -d" " -f2 > "%~nx1-mtktest"
+"%bin%"\file -m %bin%\androidbootimg.magic "%ramdiskname%" | "%bin%"\cut -d: -f2 | "%bin%"\cut -d" " -f2 > "%~nx1-mtktest"
 for /f "delims=" %%a in ('type "%~nx1-mtktest"') do @set "mtktest=%%a"
-"%bin%"\file -m %rel%\androidbootimg.magic "%ramdiskname%" | "%bin%"\cut -d: -f2 | "%bin%"\cut -d" " -f4 > "%~nx1-mtktype"
+"%bin%"\file -m %bin%\androidbootimg.magic "%ramdiskname%" | "%bin%"\cut -d: -f2 | "%bin%"\cut -d" " -f4 > "%~nx1-mtktype"
 for /f "delims=" %%a in ('type "%~nx1-mtktype"') do @set "mtktype=%%a"
 if "%mtktest%" == "MTK" (
   if not defined mtk echo Warning: No MTK header found in zImage! & set "mtk=1"
@@ -200,7 +200,7 @@ del "%~nx1-mtktest"
 if defined mtk echo.
 
 if exist "*-dtb" (
-  "%bin%"\file -m %rel%\androidbootimg.magic *-dtb | "%bin%"\cut -d: -f2 | "%bin%"\cut -d" " -f2 > "%~nx1-dtbtest"
+  "%bin%"\file -m %bin%\androidbootimg.magic *-dtb | "%bin%"\cut -d: -f2 | "%bin%"\cut -d" " -f2 > "%~nx1-dtbtest"
   for /f "delims=" %%a in ('type "%~nx1-dtbtest"') do (
     if "%imgtype%" == "ELF" if not "%%a" == "QCDT" if not "%%a" == "ELF" (
       echo Non-QC DTB found, packing zImage and appending . . .
@@ -213,7 +213,7 @@ if exist "*-dtb" (
   del "%~nx1-dtbtest"
 )
 
-"%bin%"\file -m %rel%\magic *-ramdisk*.gz | "%bin%"\cut -d: -f2 | "%bin%"\cut -d" " -f2 > "%~nx1-ramdiskcomp"
+"%bin%"\file -m %bin%\magic *-ramdisk*.gz | "%bin%"\cut -d: -f2 | "%bin%"\cut -d" " -f2 > "%~nx1-ramdiskcomp"
 for /f "delims=" %%a in ('type "%~nx1-ramdiskcomp"') do @set "ramdiskcomp=%%a"
 if "%ramdiskcomp%" == "gzip" set "unpackcmd=gzip -dcq" & set "compext=gz"
 if "%ramdiskcomp%" == "lzop" set "unpackcmd=lzop -dc" & set "compext=lzo"
