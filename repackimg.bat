@@ -252,8 +252,8 @@ echo Signing new image . . .
 echo.
 echo Using signature: %sigtype% %avbtype%%avbtxt%%blobtype%
 echo.
-if not defined avbkey set "avbkey=%rel%/avb/verity"
-if "%sigtype%" == "AVB" java -jar "%bin%"\BootSignature.jar /%avbtype% unsigned-new.img "%bin%"\"%avbkey%.pk8" "%bin%"\"%avbkey%.x509."* image-new.img 2>nul
+if not defined avbkey set "avbkey=%bin%/avb/verity"
+if "%sigtype%" == "AVB" java -jar "%bin%"\BootSignature.jar /%avbtype% unsigned-new.img "%avbkey%.pk8" "%avbkey%.x509."* image-new.img 2>nul
 if "%sigtype%" == "BLOB" (
   "%bin%"\printf '-SIGNED-BY-SIGNBLOB-\00\00\00\00\00\00\00\00' > image-new.img
   "%bin%"\blobpack tempblob %blobtype% unsigned-new.img >nul
