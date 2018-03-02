@@ -5,8 +5,8 @@ set CYGWIN=nodosfilewarning
 set "bin=%~dp0\android_win_tools"
 set "rel=android_win_tools"
 set "cur=%cd%"
-%~d0
-cd "%~p0"
+
+cd /d "%cur%"
 if "%~1" == "--help" echo usage: repackimg.bat [--original] [--level ^<0-9^>] [--avbkey ^<name^>] & goto end
 dir /a-d split_img >nul 2>&1 || goto nofiles
 for /f "delims=" %%a in ('dir /b split_img\*-ramdiskcomp') do @set "ramdiskcname=%%a"
@@ -253,7 +253,7 @@ echo.
 echo Using signature: %sigtype% %avbtype%%avbtxt%%blobtype%
 echo.
 if not defined avbkey set "avbkey=%rel%/avb/verity"
-if "%sigtype%" == "AVB" java -jar "%bin%"\BootSignature.jar /%avbtype% unsigned-new.img "%avbkey%.pk8" "%avbkey%.x509."* image-new.img 2>nul
+if "%sigtype%" == "AVB" java -jar "%bin%"\BootSignature.jar /%avbtype% unsigned-new.img "%bin%"\"%avbkey%.pk8" "%bin%"\"%avbkey%.x509."* image-new.img 2>nul
 if "%sigtype%" == "BLOB" (
   "%bin%"\printf '-SIGNED-BY-SIGNBLOB-\00\00\00\00\00\00\00\00' > image-new.img
   "%bin%"\blobpack tempblob %blobtype% unsigned-new.img >nul
